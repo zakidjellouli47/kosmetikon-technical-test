@@ -1,0 +1,63 @@
+<div class="card">
+    <div class="flex-between card-header">
+      <h2>Raw Materials</h2>
+      <button class="btn btn-primary" routerLink="/materials/new">+ New Material</button>
+    </div>
+  
+    <div class="filters">
+      <input type="text" placeholder="Search by name..." [(ngModel)]="filters.name" (input)="onFilterChange()" />
+      <input type="text" placeholder="Category..." [(ngModel)]="filters.category" (input)="onFilterChange()" />
+      <select [(ngModel)]="filters.status" (change)="onFilterChange()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <button class="btn btn-secondary" (click)="filters = {name:'', category:'', status:''}; onFilterChange()">Clear</button>
+    </div>
+  
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+    <div *ngIf="loading" class="text-center" style="padding: 40px;">Loading...</div>
+  
+    <div *ngIf="!loading" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th><th>Name</th><th>Category</th><th>Quantity</th><th>Unit</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="materials.length === 0">
+            <td colspan="7" class="text-center" style="padding: 40px; color: #6c757d;">No materials found</td>
+          </tr>
+          <tr *ngFor="let material of materials">
+            <td><strong>{{ material.code }}</strong></td>
+            <td>{{ material.name }}</td>
+            <td>{{ material.category }}</td>
+            <td>{{ material.quantity }}</td>
+            <td>{{ material.unit_of_measure }}</td>
+            <td><span class="status-badge" [ngClass]="getStatusClass(material.status)">{{ material.status }}</span></td>
+            <td>
+              <button class="btn btn-primary" [routerLink]="['/materials/edit', material.id]" style="margin-right: 5px; padding: 5px 10px; font-size: 12px;">Edit</button>
+              <button class="btn btn-danger" (click)="confirmDelete(material)" style="padding: 5px 10px; font-size: 12px;">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div *ngIf="!loading && totalPages > 0" class="pagination">
+      <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">Previous</button>
+      <button *ngFor="let page of getPageNumbers()" (click)="onPageChange(page)" [class.active]="page === currentPage">{{ page }}</button>
+      <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </div>
+  
+  <app-confirm-modal
+    *ngIf="showDeleteModal"
+    [title]="'Delete Material'"
+    [message]="'Are you sure you want to delete ' + materialToDelete?.name + '?'"
+    [confirmText]="'Delete'"
+    [cancelText]="'Cancel'"
+    (confirm)="deleteMaterial()"
+    (cancel)="cancelDelete()">
+  </app-confirm-modal>

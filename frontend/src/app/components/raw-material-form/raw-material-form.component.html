@@ -1,0 +1,65 @@
+<div class="card">
+    <div class="card-header">
+      <h2>{{ isEditing ? 'Edit Raw Material' : 'Create New Raw Material' }}</h2>
+    </div>
+  
+    <div *ngIf="loading" class="text-center" style="padding: 40px;">Loading...</div>
+  
+    <form *ngIf="!loading" [formGroup]="materialForm" (ngSubmit)="onSubmit()">
+      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+      <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+  
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name *</label>
+          <input id="name" type="text" formControlName="name" [class.error]="f['name'].invalid && f['name'].touched" placeholder="Enter material name" />
+          <div *ngIf="f['name'].invalid && f['name'].touched" class="error-message">{{ getFieldError('name') }}</div>
+        </div>
+        <div class="form-group">
+          <label for="code">Code *</label>
+          <input id="code" type="text" formControlName="code" [class.error]="f['code'].invalid && f['code'].touched" placeholder="Enter unique code" />
+          <div *ngIf="f['code'].invalid && f['code'].touched" class="error-message">{{ getFieldError('code') }}</div>
+        </div>
+      </div>
+  
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <input id="category" type="text" formControlName="category" [class.error]="f['category'].invalid && f['category'].touched" placeholder="e.g., emollient, surfactant" />
+          <div *ngIf="f['category'].invalid && f['category'].touched" class="error-message">{{ getFieldError('category') }}</div>
+        </div>
+        <div class="form-group">
+          <label for="unitOfMeasure">Unit of Measure *</label>
+          <input id="unitOfMeasure" type="text" formControlName="unitOfMeasure" [class.error]="f['unitOfMeasure'].invalid && f['unitOfMeasure'].touched" placeholder="e.g., kg, l, g" />
+          <div *ngIf="f['unitOfMeasure'].invalid && f['unitOfMeasure'].touched" class="error-message">{{ getFieldError('unitOfMeasure') }}</div>
+        </div>
+      </div>
+  
+      <div class="form-row">
+        <div class="form-group">
+          <label for="quantity">Quantity *</label>
+          <input id="quantity" type="number" step="0.01" formControlName="quantity" [class.error]="f['quantity'].invalid && f['quantity'].touched" />
+          <div *ngIf="f['quantity'].invalid && f['quantity'].touched" class="error-message">{{ getFieldError('quantity') }}</div>
+        </div>
+        <div class="form-group">
+          <label for="status">Status *</label>
+          <select id="status" formControlName="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+  
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" rows="3" placeholder="Optional description or notes"></textarea>
+      </div>
+  
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="submitting || materialForm.invalid">
+          {{ submitting ? 'Saving...' : (isEditing ? 'Update' : 'Create') }}
+        </button>
+      </div>
+    </form>
+  </div>
