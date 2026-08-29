@@ -16,6 +16,8 @@ export class RawMaterialFormComponent implements OnInit {
   submitting = false;
   error = '';
   success = '';
+  showValidationPopup = false;
+  validationErrors: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -70,13 +72,61 @@ export class RawMaterialFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.materialForm.invalid) {
-      Object.keys(this.materialForm.controls).forEach(key => {
-        this.materialForm.get(key)?.markAsTouched();
-      });
+    this.validationErrors = [];
+    this.showValidationPopup = false;
+
+    // Check all required fields
+    const requiredFields = ['name', 'code', 'category', 'unitOfMeasure', 'quantity', 'status'];
+    let hasErrors = false;
+
+    requiredFields.forEach(field => {
+      const control = this.materialForm.get(field);
+      if (!control?.value || control.value === '' || control.value === null || control.value === undefined) {
+        this.validationErrors.push(this.getFieldLabel(field) + ' is required');
+        hasErrors = true;
+      }
+    });
+
+    // Check quantity is not negative
+    const quantity = this.materialForm.get('quantity')?.value;
+    if (quantity !== undefined && quantity !== null && quantity < 0) {
+      this.validationErrors.push('Quantity cannot be negative');
+      hasErrors = true;
+    }
+
+    // Check max lengths
+    const name = this.materialForm.get('name')?.value;
+    if (name && name.length > 150) {
+      this.validationErrors.push('Name cannot exceed 150 characters');
+      hasErrors = true;
+    }
+
+    const code = this.materialForm.get('code')?.value;
+    if (code && code.length > 50) {
+      this.validationErrors.push('Code cannot exceed 50 characters');
+      hasErrors = true;
+    }
+
+    const category = this.materialForm.get('category')?.value;
+    if (category && category.length > 80) {
+      this.validationErrors.push('Category cannot exceed 80 characters');
+      hasErrors = true;
+    }
+
+    const unitOfMeasure = this.materialForm.get('unitOfMeasure')?.value;
+    if (unitOfMeasure && unitOfMeasure.length > 20) {
+      this.validationErrors.push('Unit of measure cannot exceed 20 characters');
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      this.showValidationPopup = true;
+      // Scroll to top to show the popup
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
+    // If validation passes, submit
     this.submitting = true;
     this.error = '';
     this.success = '';
@@ -92,6 +142,10 @@ export class RawMaterialFormComponent implements OnInit {
         error: (err) => {
           this.error = err.error?.message || 'Failed to update material.';
           this.submitting = false;
+          if (err.error?.errors) {
+            this.validationErrors = err.error.errors.map((e: any) => e.message);
+            this.showValidationPopup = true;
+          }
         }
       });
     } else {
@@ -104,9 +158,29 @@ export class RawMaterialFormComponent implements OnInit {
         error: (err) => {
           this.error = err.error?.message || 'Failed to create material.';
           this.submitting = false;
+          if (err.error?.errors) {
+            this.validationErrors = err.error.errors.map((e: any) => e.message);
+            this.showValidationPopup = true;
+          }
         }
       });
     }
+  }
+
+  getFieldLabel(field: string): string {
+    const labels: { [key: string]: string } = {
+      'name': 'Name',
+      'code': 'Code',
+      'category': 'Category',
+      'unitOfMeasure': 'Unit of Measure',
+      'quantity': 'Quantity',
+      'status': 'Status'
+    };
+    return labels[field] || field;
+  }
+
+  closePopup(): void {
+    this.showValidationPopup = false;
   }
 
   onCancel(): void {
